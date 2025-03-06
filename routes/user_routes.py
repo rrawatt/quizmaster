@@ -26,11 +26,11 @@ def quiz_list():
     else:
         quizzes = Quiz.query.all()
 
-    # Get user's completed quizzes
-    completed_quizzes = {
-        score.quiz_id: score
-        for score in Score.query.filter_by(user_id=current_user.id).all()
-    }
+    # Get user's best scores for each quiz
+    completed_quizzes = {}
+    for score in Score.query.filter_by(user_id=current_user.id).all():
+        if score.quiz_id not in completed_quizzes or score.score > completed_quizzes[score.quiz_id].score:
+            completed_quizzes[score.quiz_id] = score
 
     return render_template('user/quiz_list.html', quizzes=quizzes, completed_quizzes=completed_quizzes)
 
@@ -38,11 +38,6 @@ def quiz_list():
 @login_required
 def take_quiz(quiz_id):
     quiz = Quiz.query.get_or_404(quiz_id)
-
-    # Check if user has already attempted this quiz
-    existing_score = Score.query.filter_by(quiz_id=quiz_id, user_id=current_user.id).first()
-    if existing_score:
-        return redirect(url_for('user.quiz_results', score_id=existing_score.id))
 
     if request.method == 'POST':
         score = 0

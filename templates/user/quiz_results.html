@@ -11,7 +11,7 @@
             </div>
             <div class="card-body text-center">
                 <h2 class="display-4 mb-4">{{ "%.1f"|format(score.score) }}%</h2>
-                
+
                 <div class="mb-4">
                     <h5>{{ score.quiz.chapter.subject.name }}</h5>
                     <h6>{{ score.quiz.chapter.name }}</h6>
@@ -19,9 +19,11 @@
                         Completed on {{ score.timestamp.strftime('%Y-%m-%d %H:%M') }}
                     </p>
                 </div>
-                
-                <a href="{{ url_for('user.dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
-                <a href="{{ url_for('user.quiz_list') }}" class="btn btn-secondary">Take Another Quiz</a>
+
+                <div class="btn-group">
+                    <a href="{{ url_for('user.take_quiz', quiz_id=score.quiz.id) }}" class="btn btn-primary">Retake Quiz</a>
+                    <a href="{{ url_for('user.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+                </div>
             </div>
         </div>
     </div>
