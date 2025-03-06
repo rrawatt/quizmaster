@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Take Quiz{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2>{{ quiz.chapter.subject.name }} - {{ quiz.chapter.name }}</h2>
+        <p class="text-muted">Duration: {{ quiz.time_duration }}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <form method="POST">
+            {% for question in quiz.questions %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Question {{ loop.index }}</h5>
+                    <p class="card-text">{{ question.question_text }}</p>
+                    
+                    <div class="list-group">
+                        <label class="list-group-item">
+                            <input type="radio" name="question_{{ question.id }}" value="1" required>
+                            {{ question.option_1 }}
+                        </label>
+                        <label class="list-group-item">
+                            <input type="radio" name="question_{{ question.id }}" value="2" required>
+                            {{ question.option_2 }}
+                        </label>
+                        <label class="list-group-item">
+                            <input type="radio" name="question_{{ question.id }}" value="3" required>
+                            {{ question.option_3 }}
+                        </label>
+                        <label class="list-group-item">
+                            <input type="radio" name="question_{{ question.id }}" value="4" required>
+                            {{ question.option_4 }}
+                        </label>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">Submit Quiz</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

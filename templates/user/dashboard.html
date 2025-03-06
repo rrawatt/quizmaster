@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2>Welcome, {{ current_user.full_name }}</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Available Subjects</h5>
+            </div>
+            <div class="card-body">
+                {% for subject in subjects %}
+                <div class="mb-4">
+                    <h6>{{ subject.name }}</h6>
+                    <p class="text-muted">{{ subject.description }}</p>
+                    <div class="list-group">
+                        {% for chapter in subject.chapters %}
+                        <a href="{{ url_for('user.quiz_list', chapter_id=chapter.id) }}" 
+                           class="list-group-item list-group-item-action">
+                            {{ chapter.name }}
+                            <span class="badge bg-primary float-end">
+                                {{ chapter.quizzes|length }} Quizzes
+                            </span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Your Recent Scores</h5>
+            </div>
+            <div class="card-body">
+                {% for score in scores[:5] %}
+                <div class="mb-3">
+                    <h6>{{ score.quiz.chapter.subject.name }} - {{ score.quiz.chapter.name }}</h6>
+                    <p class="mb-1">Score: {{ "%.1f"|format(score.score) }}%</p>
+                    <small class="text-muted">{{ score.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
