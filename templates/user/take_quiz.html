@@ -6,19 +6,24 @@
 <div class="row mb-4">
     <div class="col-md-12">
         <h2>{{ quiz.chapter.subject.name }} - {{ quiz.chapter.name }}</h2>
-        <p class="text-muted">Duration: {{ quiz.time_duration }}</p>
+        <div class="alert alert-info">
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Time Remaining: <span id="timer" class="fw-bold"></span></span>
+                <span>Duration: {{ quiz.time_duration }}</span>
+            </div>
+        </div>
     </div>
 </div>
 
 <div class="row">
     <div class="col-md-12">
-        <form method="POST">
+        <form method="POST" id="quizForm">
             {% for question in quiz.questions %}
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">Question {{ loop.index }}</h5>
                     <p class="card-text">{{ question.question_text }}</p>
-                    
+
                     <div class="list-group">
                         <label class="list-group-item">
                             <input type="radio" name="question_{{ question.id }}" value="1" required>
@@ -40,11 +45,42 @@
                 </div>
             </div>
             {% endfor %}
-            
+
             <div class="d-grid gap-2">
                 <button type="submit" class="btn btn-primary btn-lg">Submit Quiz</button>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Parse quiz duration from Python timedelta to minutes
+    const durationStr = "{{ quiz.time_duration }}";
+    const minutes = parseInt(durationStr.match(/\d+/)[0]);
+    let timeLeft = minutes * 60; // Convert to seconds
+
+    function updateTimer() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        document.getElementById('timer').textContent = 
+            `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+        if (timeLeft <= 0) {
+            document.getElementById('quizForm').submit();
+        } else {
+            timeLeft--;
+            setTimeout(updateTimer, 1000);
+        }
+    }
+
+    // Start the timer
+    updateTimer();
+
+    // Prevent form resubmission on page refresh
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+});
+</script>
 {% endblock %}
