@@ -26,7 +26,13 @@ def quiz_list():
     else:
         quizzes = Quiz.query.all()
 
-    return render_template('user/quiz_list.html', quizzes=quizzes)
+    # Get user's completed quizzes
+    completed_quizzes = {
+        score.quiz_id: score
+        for score in Score.query.filter_by(user_id=current_user.id).all()
+    }
+
+    return render_template('user/quiz_list.html', quizzes=quizzes, completed_quizzes=completed_quizzes)
 
 @user_bp.route('/quiz/<int:quiz_id>/take', methods=['GET', 'POST'])
 @login_required
@@ -36,8 +42,7 @@ def take_quiz(quiz_id):
     # Check if user has already attempted this quiz
     existing_score = Score.query.filter_by(quiz_id=quiz_id, user_id=current_user.id).first()
     if existing_score:
-        flash('You have already attempted this quiz.')
-        return redirect(url_for('user.dashboard'))
+        return redirect(url_for('user.quiz_results', score_id=existing_score.id))
 
     if request.method == 'POST':
         score = 0
