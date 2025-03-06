@@ -9,9 +9,85 @@
     </div>
 </div>
 
-<div class="row">
+<div class="row mb-4">
+    <!-- Overall Stats Card -->
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Overall Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <h2 class="display-4">{{ "%.1f"|format(average_score) }}%</h2>
+                    <p class="text-muted">Average Score</p>
+                </div>
+                <div class="row text-center">
+                    <div class="col">
+                        <h4>{{ total_quizzes_taken }}</h4>
+                        <p class="text-muted">Quizzes Taken</p>
+                    </div>
+                    <div class="col">
+                        <h4>{{ completion_rate }}%</h4>
+                        <p class="text-muted">Completion Rate</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Trend -->
     <div class="col-md-8">
-        <div class="card mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Performance Trend</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Subject Performance -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Subject Performance</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="subjectChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for score in recent_scores %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ score.quiz.chapter.subject.name }} - {{ score.quiz.chapter.name }}</h6>
+                            <small class="text-muted">{{ score.timestamp.strftime('%Y-%m-%d') }}</small>
+                        </div>
+                        <p class="mb-1">Score: {{ "%.1f"|format(score.score) }}%</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Available Subjects Section -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">Available Subjects</h5>
             </div>
@@ -36,22 +112,63 @@
             </div>
         </div>
     </div>
-    
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Your Recent Scores</h5>
-            </div>
-            <div class="card-body">
-                {% for score in scores[:5] %}
-                <div class="mb-3">
-                    <h6>{{ score.quiz.chapter.subject.name }} - {{ score.quiz.chapter.name }}</h6>
-                    <p class="mb-1">Score: {{ "%.1f"|format(score.score) }}%</p>
-                    <small class="text-muted">{{ score.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
 </div>
+
+<!-- Add Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Performance Trend Chart
+    const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+    new Chart(performanceCtx, {
+        type: 'line',
+        data: {
+            labels: {{ performance_dates|tojson }},
+            datasets: [{
+                label: 'Quiz Scores',
+                data: {{ performance_scores|tojson }},
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+
+    // Subject Performance Chart
+    const subjectCtx = document.getElementById('subjectChart').getContext('2d');
+    new Chart(subjectCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ subject_names|tojson }},
+            datasets: [{
+                label: 'Average Score',
+                data: {{ subject_scores|tojson }},
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgb(75, 192, 192)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

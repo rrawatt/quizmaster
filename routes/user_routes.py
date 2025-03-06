@@ -4,13 +4,60 @@ from app import db
 from models import Subject, Quiz, Question, Score
 from routes import user_bp
 from datetime import datetime, timedelta
+from sqlalchemy import func
 
 @user_bp.route('/dashboard')
 @login_required
 def dashboard():
+    # Get all subjects
     subjects = Subject.query.all()
-    user_scores = Score.query.filter_by(user_id=current_user.id).all()
-    return render_template('user/dashboard.html', subjects=subjects, scores=user_scores)
+
+    # Get user's scores
+    user_scores = Score.query.filter_by(user_id=current_user.id).order_by(Score.timestamp.desc()).all()
+
+    # Calculate overall statistics
+    total_quizzes_taken = len(user_scores)
+    average_score = sum(score.score for score in user_scores) / total_quizzes_taken if total_quizzes_taken > 0 else 0
+
+    # Calculate completion rate
+    total_quizzes = Quiz.query.count()
+    completion_rate = (total_quizzes_taken / total_quizzes * 100) if total_quizzes > 0 else 0
+
+    # Get recent scores
+    recent_scores = user_scores[:5]  # Last 5 quiz attempts
+
+    # Prepare performance trend data
+    performance_dates = []
+    performance_scores = []
+    for score in reversed(user_scores[-10:]):  # Last 10 attempts
+        performance_dates.append(score.timestamp.strftime('%Y-%m-%d'))
+        performance_scores.append(score.score)
+
+    # Calculate subject-wise performance
+    subject_performance = {}
+    for score in user_scores:
+        subject_name = score.quiz.chapter.subject.name
+        if subject_name not in subject_performance:
+            subject_performance[subject_name] = {'total': 0, 'count': 0}
+        subject_performance[subject_name]['total'] += score.score
+        subject_performance[subject_name]['count'] += 1
+
+    subject_names = []
+    subject_scores = []
+    for subject_name, data in subject_performance.items():
+        subject_names.append(subject_name)
+        subject_scores.append(data['total'] / data['count'])
+
+    return render_template('user/dashboard.html',
+                         subjects=subjects,
+                         recent_scores=recent_scores,
+                         average_score=average_score,
+                         total_quizzes_taken=total_quizzes_taken,
+                         completion_rate=round(completion_rate, 1),
+                         performance_dates=performance_dates,
+                         performance_scores=performance_scores,
+                         subject_names=subject_names,
+                         subject_scores=subject_scores)
 
 @user_bp.route('/quizzes')
 @login_required
