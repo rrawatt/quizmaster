@@ -55,16 +55,41 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Parse quiz duration from Python timedelta to minutes
+    // Get quiz duration in total seconds from the server
+    // The timedelta is in the format "HH:MM:SS" or "X day, HH:MM:SS"
     const durationStr = "{{ quiz.time_duration }}";
-    const minutes = parseInt(durationStr.match(/\d+/)[0]);
-    let timeLeft = minutes * 60; // Convert to seconds
+    let totalSeconds = 0;
+
+    if (durationStr.includes('day')) {
+        const parts = durationStr.split(', ');
+        const days = parseInt(parts[0]);
+        const timeStr = parts[1].split(':');
+        totalSeconds = days * 24 * 60 * 60 + 
+                      parseInt(timeStr[0]) * 3600 + 
+                      parseInt(timeStr[1]) * 60 + 
+                      parseInt(timeStr[2]);
+    } else {
+        const timeStr = durationStr.split(':');
+        totalSeconds = parseInt(timeStr[0]) * 3600 + 
+                      parseInt(timeStr[1]) * 60 + 
+                      (timeStr[2] ? parseInt(timeStr[2]) : 0);
+    }
+
+    let timeLeft = totalSeconds;
 
     function updateTimer() {
-        const minutes = Math.floor(timeLeft / 60);
+        const hours = Math.floor(timeLeft / 3600);
+        const minutes = Math.floor((timeLeft % 3600) / 60);
         const seconds = timeLeft % 60;
-        document.getElementById('timer').textContent = 
-            `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+        let displayTime = '';
+        if (hours > 0) {
+            displayTime = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        } else {
+            displayTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        document.getElementById('timer').textContent = displayTime;
 
         if (timeLeft <= 0) {
             document.getElementById('quizForm').submit();
